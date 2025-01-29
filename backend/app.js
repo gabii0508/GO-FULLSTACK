@@ -1,13 +1,17 @@
 const express = require('express');
+const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
 
-const app = express();
+const Thing = require('../backend/models/thing');
+
 
 mongoose.connect('mongodb+srv://gaby:Gabriela30.@cluster0.yfra7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+const app = express();
 
 app.use(express.json());
 
@@ -19,11 +23,15 @@ app.use((req, res, next) => {
   });
 
   app.post('/api/stuff', (req, res, next) => {
-    console.log(req.body);
-    res.status(201).json({
-      message: 'Objet créé !'
+    delete req.body._id;
+    const thing = new Thing({
+      ...req.body
     });
+    thing.save()
+      .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
+      .catch(error => res.status(400).json({ error }));
   });
+
 
 app.get('/api/stuff', (req, res, next) => {
     const stuff = [
